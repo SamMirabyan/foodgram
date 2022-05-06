@@ -61,7 +61,7 @@ class Recipe(models.Model):
     text = models.TextField(max_length=4000, verbose_name='Описание')
     cooking_time = models.TimeField(verbose_name='Время приготовления')
     image = models.ImageField(
-        upload_to='images/',
+        upload_to='recipes/images/',
         verbose_name='Картинка',
         blank=True
     )
