@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -42,7 +43,6 @@ class RecipeReadOnlyViewSet(ModelViewSet):
                 user.favorites.remove(recipe)
                 return Response('Рецепт успешно удален из избранного', status=status.HTTP_202_ACCEPTED)
             return Response(f'Ошибка удаления из избранного! Рецепт отсутсвует в избранном пользователя {user}', status=status.HTTP_400_BAD_REQUEST)
-        
 
     @action(methods=['post', 'delete'], detail=True)
     def shopping_cart(self, *args, **kwargs):
@@ -60,3 +60,14 @@ class RecipeReadOnlyViewSet(ModelViewSet):
                 user.shopping_cart.remove(recipe)
                 return Response('Рецепт успешно удален из корзины', status=status.HTTP_202_ACCEPTED)
             return Response(f'Ошибка удаления из корзины! Рецепт отсутсвует в корзине пользователя {user}', status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=False)
+    def download_shopping_cart(self, *args, **kwargs):
+        #recipes = self.request.user.shopping_cart
+        recipes = User.objects.get(username='bill').shopping_cart
+        shopping_cart = recipes.values('ingredients__ingredient__name').order_by('ingredients__ingredient__name').annotate(total=Sum('ingredients__amount'))
+        shopping_dict = {}
+        for item in shopping_cart:
+            ingredient, amount = item.values()
+            shopping_dict.update({ingredient: amount})
+        return Response(shopping_dict)
