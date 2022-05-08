@@ -77,6 +77,11 @@ class Recipe(models.Model):
         related_name='favorites',
         verbose_name='Избранное',
     )
+    added_to_cart = models.ManyToManyField(
+        User,
+        related_name='shopping_cart',
+        verbose_name='Корзина',
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',

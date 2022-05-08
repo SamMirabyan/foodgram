@@ -30,20 +30,33 @@ class RecipeReadOnlyViewSet(ModelViewSet):
     def favorite(self, *args, **kwargs):
         # user = self.request.user - здесь получаем юзера
         #print(self.request.method)
-        user = User.objects.last()
+        user = User.objects.get(username='bill')
         recipe = self.get_object()
         if self.request.method == 'POST':
             if recipe.favorited_by.filter(username=user.username).exists():
                 return Response(f'Ошибка добавления в избранное! Рецепт уже в избранном пользователя {user}', status=status.HTTP_400_BAD_REQUEST)
             recipe.favorited_by.add(user)
-            print(recipe.favorited_by.all())
             return Response('Рецепт успешно добавлен в избранное', status=status.HTTP_201_CREATED)
-        if recipe.favorited_by.filter(username=user.username).exists():
-            #recipe.favorited_by.exclude(username=user.username)
-            #print(recipe.favorited_by.all())
-            return Response('Рецепт успешно удален из избранного', status=status.HTTP_204_NO_CONTENT)
-        print(recipe.favorited_by.all())
-        return Response(f'Ошибка удаления из избранного! Рецепт отсутсвует в избранном пользователя {user}', status=status.HTTP_400_BAD_REQUEST)
+        elif self.request.method == 'DELETE':
+            if recipe.favorited_by.filter(username=user.username).exists():
+                user.favorites.remove(recipe)
+                return Response('Рецепт успешно удален из избранного', status=status.HTTP_202_ACCEPTED)
+            return Response(f'Ошибка удаления из избранного! Рецепт отсутсвует в избранном пользователя {user}', status=status.HTTP_400_BAD_REQUEST)
         
 
-        
+    @action(methods=['post', 'delete'], detail=True)
+    def shopping_cart(self, *args, **kwargs):
+        # user = self.request.user - здесь получаем юзера
+        #print(self.request.method)
+        user = User.objects.get(username='bill')
+        recipe = self.get_object()
+        if self.request.method == 'POST':
+            if recipe.added_to_cart.filter(username=user.username).exists():
+                return Response(f'Ошибка добавления в корзину! Рецепт уже в корзине пользователя {user}', status=status.HTTP_400_BAD_REQUEST)
+            recipe.added_to_cart.add(user)
+            return Response('Рецепт успешно добавлен в корзину', status=status.HTTP_201_CREATED)
+        elif self.request.method == 'DELETE':
+            if recipe.added_to_cart.filter(username=user.username).exists():
+                user.shopping_cart.remove(recipe)
+                return Response('Рецепт успешно удален из корзины', status=status.HTTP_202_ACCEPTED)
+            return Response(f'Ошибка удаления из корзины! Рецепт отсутсвует в корзине пользователя {user}', status=status.HTTP_400_BAD_REQUEST)
