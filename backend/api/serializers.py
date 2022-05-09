@@ -68,10 +68,24 @@ class RecipeReadOnlySerializer(ModelSerializer):
     author = BaseUserSerializer()
     ingredients = IngredientSerializer(many=True)
     tags = TagSerializer(many=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = api_models.Recipe
-        exclude = ('favorited_by',)
+        exclude = ('favorited_by', 'added_to_cart',)
+
+    def get_is_favorited(self, obj: api_models.Recipe) -> bool:
+        '''
+        Находится ли рецепт в избранных пользователя.
+        '''
+        return self.context.get('request').user.favorites.filter(id=obj.id).exists()
+
+    def get_is_in_shopping_cart(self, obj: api_models.Recipe) -> bool:
+        '''
+        Находится ли рецепт в корзине пользователя.
+        '''
+        return self.context.get('request').user.shopping_cart.filter(id=obj.id).exists()
 
 
 class PasswordSerializer(Serializer):
@@ -88,5 +102,4 @@ class PasswordSerializer(Serializer):
             user.save()
         else:
             raise serializers.ValidationError('Вы ввели неверный пароль!')
-        #print(user, current, new)
-        return super().validate(attrs)
+        #return super().validate(attrs)

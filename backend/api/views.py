@@ -30,9 +30,9 @@ class RecipeReadOnlyViewSet(ModelViewSet):
 
     @action(methods=['post', 'delete'], detail=True)
     def favorite(self, *args, **kwargs):
-        # user = self.request.user - здесь получаем юзера
+        user = self.request.user
         #print(self.request.method)
-        user = User.objects.get(username='bill')
+        #user = User.objects.get(username='bill')
         recipe = self.get_object()
         if self.request.method == 'POST':
             if recipe.favorited_by.filter(username=user.username).exists():
@@ -47,9 +47,9 @@ class RecipeReadOnlyViewSet(ModelViewSet):
 
     @action(methods=['post', 'delete'], detail=True)
     def shopping_cart(self, *args, **kwargs):
-        # user = self.request.user - здесь получаем юзера
+        user = self.request.user
         #print(self.request.method)
-        user = User.objects.get(username='bill')
+        #user = User.objects.get(username='bill')
         recipe = self.get_object()
         if self.request.method == 'POST':
             if recipe.added_to_cart.filter(username=user.username).exists():
