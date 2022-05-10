@@ -7,26 +7,31 @@ from rest_framework import permissions
 from rest_framework import status
 
 from .models import IngredientType, Recipe, Subscription, Tag
-from .serializers import BaseUserSerializer, IngredientTypeSerializer, PasswordSerializer, RecipeReadOnlySerializer, SubscriptionSerializer, TagSerializer
-
+from .serializers import BaseUserSerializer, IngredientTypeSerializer, PasswordSerializer, RecipeCreateUpdateDeleteSerializer, RecipeReadOnlySerializer, SubscriptionSerializer, TagSerializer
 
 User = get_user_model()
+
 
 class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    #permission_classes = ...
+    permission_classes = (permissions.IsAdminUser,)
 
 
 class IngredientViewSet(ModelViewSet):
     queryset = IngredientType.objects.all()
     serializer_class = IngredientTypeSerializer
-    #permission_classes = ...
+    permission_classes = (permissions.IsAdminUser,)
 
 
 class RecipeReadOnlyViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeReadOnlySerializer
+    #serializer_class = RecipeReadOnlySerializer
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return RecipeReadOnlySerializer
+        return RecipeCreateUpdateDeleteSerializer
 
     @action(methods=['post', 'delete'], detail=True)
     def favorite(self, *args, **kwargs):

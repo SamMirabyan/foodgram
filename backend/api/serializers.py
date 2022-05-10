@@ -88,6 +88,32 @@ class RecipeReadOnlySerializer(ModelSerializer):
         return self.context.get('request').user.shopping_cart.filter(id=obj.id).exists()
 
 
+class SimpleIngredientSerializer(ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(queryset=api_models.IngredientType.objects.all())
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = api_models.Ingredient
+        fields = ('id', 'amount',)
+
+
+class RecipeCreateUpdateDeleteSerializer(ModelSerializer):
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    ingredients = SimpleIngredientSerializer(many=True)
+
+    class Meta:
+        model = api_models.Recipe
+        fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author',)
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        instance = super().create(validated_data)
+        for item in ingredients:
+            ingredient = api_models.Ingredient.objects.create(ingredient=item['id'], amount=item['amount'])
+            instance.ingredients.add(ingredient)
+        return instance
+
+
 class PasswordSerializer(Serializer):
     current_password = serializers.CharField()
     new_password = serializers.CharField()
