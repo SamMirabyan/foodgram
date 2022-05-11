@@ -7,6 +7,7 @@ from rest_framework import permissions
 from rest_framework import status
 
 from .models import IngredientType, Recipe, Subscription, Tag
+from .permissions import IsAdminOrReadOnly
 from .serializers import BaseUserSerializer, IngredientTypeSerializer, PasswordSerializer, RecipeCreateUpdateDeleteSerializer, RecipeReadOnlySerializer, SubscriptionSerializer, TagSerializer
 
 User = get_user_model()
@@ -15,18 +16,17 @@ User = get_user_model()
 class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class IngredientViewSet(ModelViewSet):
     queryset = IngredientType.objects.all()
     serializer_class = IngredientTypeSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class RecipeReadOnlyViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    #serializer_class = RecipeReadOnlySerializer
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -92,9 +92,6 @@ class UserReadOnlyViewset(ModelViewSet):
 
     @action(methods=['post'], detail=False, serializer_class=PasswordSerializer)
     def set_password(self, *args, **kwargs):
-        """
-        Можно использовать сериализатор. ПОдумать.
-        """
         data = self.request.data
         data['user'] = self.request.user.id
         #current_pass = data.get('current_password')

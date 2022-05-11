@@ -46,3 +46,14 @@ class TagsTests(TestCase):
         payload.update(self.tag.__dict__)
         payload.pop('_state')
         self.assertEqual(tag_object, payload)
+
+    def test_create_new_tag(self):
+        data = {
+            'name': 'test',
+            'color': 22,
+            'slug': 'test'
+        }
+        request = self.client.post(self.list_url, data=data)
+        print(dir(self.client))
+        self.assertEquals(request.status_code, 401)
+
