@@ -75,6 +75,16 @@ class RecipeReadOnlySerializer(ModelSerializer):
         model = api_models.Recipe
         exclude = ('favorited_by', 'added_to_cart',)
 
+    def __init__(self, *args, **kwargs):
+        '''
+        Если пользователь не авторизован,
+        то не показываем поля is_favorited и is_in_shopping_cart.
+        '''
+        if not kwargs.get('context').get('request').user.is_authenticated:
+            del self.fields['is_favorited']
+            del self.fields['is_in_shopping_cart']
+        return super().__init__(*args, **kwargs)
+
     def get_is_favorited(self, obj: api_models.Recipe) -> bool:
         '''
         Находится ли рецепт в избранных пользователя.

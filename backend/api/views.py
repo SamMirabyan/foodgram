@@ -5,6 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 
 from .models import IngredientType, Recipe, Subscription, Tag
 from .permissions import IsAdminOrReadOnly
@@ -25,8 +26,17 @@ class IngredientViewSet(ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
 
 
+class MyPag(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'limit'
+    max_page_size = 10
+
+
+
 class RecipeReadOnlyViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
+    pagination_class = MyPag
+    #pagination_class.page_size_query_param = 'page_size'
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -116,11 +126,20 @@ class UserReadOnlyViewset(ModelViewSet):
 
     @action(methods=['get'], detail=False)
     def subscriptions(self, *args, **kwargs):
+        #print(args[0])
+        request = args[0]
+        print(request)
         user = self.request.user
         subscriptions = user.subscriptions.all()
         if subscriptions.exists():
             subscriptions = [user.subscribed_to for user in subscriptions.iterator()]
-            serializer = self.serializer_class(subscriptions, many=True)
+            paginator = LimitOffsetPagination()
+            paginated = paginator.paginate_queryset(subscriptions, request=request)
+            print(paginated)
+            #subscriptions = [user.subscribed_to for user in subscriptions.iterator()]
+            #paginator = LimitOffsetPagination()
+            #paginated = paginator.paginate_queryset(subscriptions, limit)
+            serializer = self.serializer_class(paginated, many=True)
             return Response(serializer.data)
         return Response('Вы не подписаны ни на одного пользователя')
     
