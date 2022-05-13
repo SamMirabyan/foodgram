@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import ModelSerializer, Serializer
 from rest_framework import serializers
 
 from . import models as api_models
@@ -8,13 +7,20 @@ from .custom_fields import IngredientTypeField, IngredientUnitField
 User = get_user_model()
 
 
-class BaseUserSerializer(ModelSerializer):
+class BaseUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',)
+
+
+class UserSingUpSerializer(BaseUserSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name', 'password',)
-    
+        read_only_fields = ('id',)
+
     def save(self, **kwargs):
         raw_password = self.validated_data.get('password')
         instance = super().save(**kwargs)
@@ -23,7 +29,32 @@ class BaseUserSerializer(ModelSerializer):
         return instance
 
 
-class SubscriptionSerializer(ModelSerializer):
+class UserMainSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', )
+
+    def __init__(self, *args, **kwargs):
+        '''
+        Если пользователь не авторизован,
+        то не показываем поле is_subscribed.
+        '''
+        if kwargs:
+            if not kwargs.get('context').get('request').user.is_authenticated:
+                del self.fields['is_subscribed']
+        return super().__init__(*args, **kwargs)
+
+    def get_is_subscribed(self, obj):
+        #print(self)
+        #print(dir(self))
+        #print(self.context)
+        #return True
+        return self.context.get('request').user.subscriptions.filter(id=obj.id).exists()
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = api_models.Subscription
@@ -43,19 +74,19 @@ class SubscriptionSerializer(ModelSerializer):
         return value
 
 
-class TagSerializer(ModelSerializer):
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = api_models.Tag
         fields = '__all__'
 
 
-class IngredientTypeSerializer(ModelSerializer):
+class IngredientTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = api_models.IngredientType
         fields = '__all__'
 
 
-class IngredientSerializer(ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     name = IngredientTypeField(source='ingredient', read_only=True)
     measurement_unit = IngredientUnitField(source='ingredient', read_only=True)
 
@@ -64,7 +95,7 @@ class IngredientSerializer(ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount',)
 
 
-class RecipeReadOnlySerializer(ModelSerializer):
+class RecipeReadOnlySerializer(serializers.ModelSerializer):
     author = BaseUserSerializer()
     ingredients = IngredientSerializer(many=True)
     tags = TagSerializer(many=True)
@@ -98,7 +129,7 @@ class RecipeReadOnlySerializer(ModelSerializer):
         return self.context.get('request').user.shopping_cart.filter(id=obj.id).exists()
 
 
-class SimpleIngredientSerializer(ModelSerializer):
+class SimpleIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=api_models.IngredientType.objects.all())
     amount = serializers.IntegerField()
 
@@ -107,7 +138,7 @@ class SimpleIngredientSerializer(ModelSerializer):
         fields = ('id', 'amount',)
 
 
-class RecipeCreateUpdateDeleteSerializer(ModelSerializer):
+class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     ingredients = SimpleIngredientSerializer(many=True)
 
@@ -124,7 +155,7 @@ class RecipeCreateUpdateDeleteSerializer(ModelSerializer):
         return instance
 
 
-class PasswordSerializer(Serializer):
+class PasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField()
     new_password = serializers.CharField()
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
@@ -138,4 +169,4 @@ class PasswordSerializer(Serializer):
             user.save()
         else:
             raise serializers.ValidationError('Вы ввели неверный пароль!')
-        #return super().validate(attrs)
+        return super().validate(attrs)

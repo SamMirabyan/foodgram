@@ -5,11 +5,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 
 from .models import IngredientType, Recipe, Subscription, Tag
+from .pagination import PageLimitPagination
 from .permissions import IsAdminOrReadOnly
-from .serializers import BaseUserSerializer, IngredientTypeSerializer, PasswordSerializer, RecipeCreateUpdateDeleteSerializer, RecipeReadOnlySerializer, SubscriptionSerializer, TagSerializer
+from .serializers import BaseUserSerializer, IngredientTypeSerializer, PasswordSerializer, RecipeCreateUpdateDeleteSerializer, RecipeReadOnlySerializer, SubscriptionSerializer, TagSerializer, UserMainSerializer, UserSingUpSerializer
 
 User = get_user_model()
 
@@ -26,17 +26,9 @@ class IngredientViewSet(ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class MyPag(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'limit'
-    max_page_size = 10
-
-
-
 class RecipeReadOnlyViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    pagination_class = MyPag
-    #pagination_class.page_size_query_param = 'page_size'
+    pagination_class = PageLimitPagination
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -91,55 +83,46 @@ class RecipeReadOnlyViewSet(ModelViewSet):
 
 class UserReadOnlyViewset(ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = BaseUserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    #serializer_class = BaseUserSerializer
+    pagination_class = PageLimitPagination
+    #permission_classes = (permissions.IsAuthenticated,)
 
-    @action(methods=['get'], detail=False)
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return UserSingUpSerializer
+        return UserMainSerializer
+
+    @action(methods=['get'], detail=False, serializer_class=BaseUserSerializer, permission_classes=[permissions.IsAuthenticated])
     def me(self, *args, **kwargs):
         user = self.request.user
         serializer = self.serializer_class(user)
         return Response(serializer.data)
 
-    @action(methods=['post'], detail=False, serializer_class=PasswordSerializer)
+    @action(methods=['post'], detail=False, serializer_class=PasswordSerializer, permission_classes=[permissions.IsAuthenticated])
     def set_password(self, *args, **kwargs):
         data = self.request.data
         data['user'] = self.request.user.id
-        #current_pass = data.get('current_password')
-        #new_pass = data.get('new_password')
-        #print(self.request.data)
-        #if not (current_pass or new_pass):
-        #    error_message = ('Ошибка! Поля "current_password" '
-        #                     'и "new_password" обязательны')
-        #    return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
-        #user = self.request.user
-        #ser = self.serializer_class(data={'current_password': current_pass, 'new_password': new_pass, 'user': user.id})
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             return Response('Пароль успешно изменен!')
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        #if user.check_password(current_pass):
-        #    user.set_password(new_pass)
-        #    user.save()
-        #    return Response('Пароль успешно изменен')
-        #return Response('Неверный пароль!', status=status.HTTP_404_NOT_FOUND)
-
-    @action(methods=['get'], detail=False)
+    @action(methods=['get'], detail=False, serializer_class=UserMainSerializer, permission_classes=[permissions.IsAuthenticated])
     def subscriptions(self, *args, **kwargs):
-        #print(args[0])
-        request = args[0]
-        print(request)
         user = self.request.user
         subscriptions = user.subscriptions.all()
         if subscriptions.exists():
             subscriptions = [user.subscribed_to for user in subscriptions.iterator()]
-            paginator = LimitOffsetPagination()
-            paginated = paginator.paginate_queryset(subscriptions, request=request)
-            print(paginated)
+            paginator = PageLimitPagination()
+            paginated = paginator.paginate_queryset(subscriptions, request=self.request)
+            #print(paginated)
             #subscriptions = [user.subscribed_to for user in subscriptions.iterator()]
             #paginator = LimitOffsetPagination()
             #paginated = paginator.paginate_queryset(subscriptions, limit)
+            #serializer = UserMainSerializer(paginated, many=True)
             serializer = self.serializer_class(paginated, many=True)
+            serializer.context['request'] = self.request
+            #serializer = self.serializer_class(paginated, many=True)
             return Response(serializer.data)
         return Response('Вы не подписаны ни на одного пользователя')
     
