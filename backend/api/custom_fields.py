@@ -17,3 +17,12 @@ class IngredientUnitField(RelatedField):
     """
     def to_representation(self, value):
         return value.measurement_unit
+
+
+class IngredientIdField(RelatedField):
+    """
+    Поле для вывода id ингредиента модели IgredientType
+    в результат сериализации модели Ingredient.
+    """
+    def to_representation(self, value):
+        return value.id

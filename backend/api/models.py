@@ -63,7 +63,7 @@ class Tag(models.Model):
 class Recipe(models.Model):
     name = models.CharField(max_length=128, verbose_name='Название')
     text = models.TextField(max_length=4000, verbose_name='Описание')
-    cooking_time = models.TimeField(verbose_name='Время приготовления')
+    cooking_time = models.IntegerField(verbose_name='Время приготовления')
     image = models.ImageField(
         upload_to='recipes/images/',
         verbose_name='Картинка',

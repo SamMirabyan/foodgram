@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from . import models as api_models
-from .custom_fields import IngredientTypeField, IngredientUnitField
+from .custom_fields import IngredientIdField, IngredientTypeField, IngredientUnitField
+from .pagination import RecipesLimitPagination
 
 User = get_user_model()
 
@@ -16,8 +17,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
 class UserSingUpSerializer(BaseUserSerializer):
     password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = User
+    class Meta(BaseUserSerializer.Meta):
         fields = ('email', 'id', 'username', 'first_name', 'last_name', 'password',)
         read_only_fields = ('id',)
 
@@ -29,11 +29,10 @@ class UserSingUpSerializer(BaseUserSerializer):
         return instance
 
 
-class UserMainSerializer(serializers.ModelSerializer):
+class UserMainSerializer(BaseUserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
-    class Meta:
-        model = User
+    class Meta(BaseUserSerializer.Meta):
         fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', )
 
     def __init__(self, *args, **kwargs):
@@ -47,11 +46,37 @@ class UserMainSerializer(serializers.ModelSerializer):
         return super().__init__(*args, **kwargs)
 
     def get_is_subscribed(self, obj):
-        #print(self)
-        #print(dir(self))
-        #print(self.context)
-        #return True
-        return self.context.get('request').user.subscriptions.filter(id=obj.id).exists()
+        return self.context.get('request').user.subscriptions.filter(subscribed_to_id=obj.id).exists()
+
+
+class RecipeBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = api_models.Recipe
+        fields = ('id', 'name', 'image', 'cooking_time',)
+
+
+class UserSubscriptionSerializer(UserMainSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta(UserMainSerializer.Meta):
+        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'recipes', 'recipes_count',)
+        read_only_fields = ('recipes',)
+
+    def get_recipes(self, obj):
+        '''
+        Метод получения рецептов пользователя
+        с пагинацией.
+        '''
+        request = self.context.get('request')
+        queryset = obj.recipes.all().order_by('-id')
+        paginator = RecipesLimitPagination()
+        paginated = paginator.paginate_queryset(queryset, request)
+        serializer = RecipeBaseSerializer(paginated, many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -70,7 +95,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def validate_subscriber(self, value):
         data = self.initial_data
         if data.get('subscriber') == data.get('subscribed_to'):
-            raise serializers.ValidationError('Ошибка! Вы пытаетесь подписаться на себя!')
+            raise serializers.ValidationError({
+                'subscribed_to': 'Ошибка! Вы пытаетесь подписаться на себя!'
+            })
         return value
 
 
@@ -89,6 +116,7 @@ class IngredientTypeSerializer(serializers.ModelSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     name = IngredientTypeField(source='ingredient', read_only=True)
     measurement_unit = IngredientUnitField(source='ingredient', read_only=True)
+    id = IngredientIdField(source='ingredient', read_only=True)
 
     class Meta:
         model = api_models.Ingredient
@@ -96,7 +124,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadOnlySerializer(serializers.ModelSerializer):
-    author = BaseUserSerializer()
+    author = UserMainSerializer()
     ingredients = IngredientSerializer(many=True)
     tags = TagSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
@@ -111,9 +139,10 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
         Если пользователь не авторизован,
         то не показываем поля is_favorited и is_in_shopping_cart.
         '''
-        if not kwargs.get('context').get('request').user.is_authenticated:
-            del self.fields['is_favorited']
-            del self.fields['is_in_shopping_cart']
+        if kwargs:
+            if not kwargs.get('context').get('request').user.is_authenticated:
+                del self.fields['is_favorited']
+                del self.fields['is_in_shopping_cart']
         return super().__init__(*args, **kwargs)
 
     def get_is_favorited(self, obj: api_models.Recipe) -> bool:
@@ -137,6 +166,13 @@ class SimpleIngredientSerializer(serializers.ModelSerializer):
         model = api_models.Ingredient
         fields = ('id', 'amount',)
 
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError({
+                'amount': 'Ошибка! Количество ингедиентов не может быть меньше или равно нулю.'
+            })
+        return value
+
 
 class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -153,6 +189,20 @@ class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
             ingredient = api_models.Ingredient.objects.create(ingredient=item['id'], amount=item['amount'])
             instance.ingredients.add(ingredient)
         return instance
+
+    def update(self, instance, validated_data):
+        if 'author' in self.initial_data:
+            raise serializers.ValidationError({
+                'author': 'Ошибка! Это поле нельзя поменять.'
+            })
+        return super().update(instance, validated_data)
+
+    def validate_cooking_time(self, value):
+        if value <= 0:
+            raise serializers.ValidationError({
+                'cooking_time': 'Ошибка! Время приготовления не может быть меньше или равно нулю'
+            })
+        return value
 
 
 class PasswordSerializer(serializers.Serializer):
