@@ -53,7 +53,7 @@ class Tag(models.Model):
         unique=True,
         verbose_name='Название',
     )
-    color = models.IntegerField(verbose_name='Цвет')
+    color = models.CharField(max_length=7, verbose_name='Цвет')
     slug = models.SlugField(unique=True, verbose_name='Короткое название')
 
     def __str__(self):

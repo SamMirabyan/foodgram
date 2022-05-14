@@ -106,6 +106,15 @@ class TagSerializer(serializers.ModelSerializer):
         model = api_models.Tag
         fields = '__all__'
 
+    def validate_color(self, value):
+        import re
+        regexp = '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
+        if not re.fullmatch(regexp, value):
+            raise serializers.ValidationError({
+                'color': 'Ошибка! Задан неверный цветовой код.'
+            })
+        return value
+
 
 class IngredientTypeSerializer(serializers.ModelSerializer):
     class Meta:
