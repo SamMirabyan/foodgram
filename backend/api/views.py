@@ -136,16 +136,6 @@ class UserReadOnlyViewset(ModelViewSet):
     pagination_class = PageLimitPagination
     #permission_classes = (permissions.IsAuthenticated,)
 
-    def get_serializer(self, *args, **kwargs):
-        """
-        Return the serializer instance that should be used for validating and
-        deserializing input, and for serializing output.
-        """
-        serializer_class = self.get_serializer_class()
-        #kwargs.setdefault('context', self.get_serializer_context())
-        kwargs.update(self.get_serializer_context())
-        return serializer_class(*args, **kwargs)
-
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return UserSingUpSerializer

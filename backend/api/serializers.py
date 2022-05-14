@@ -48,9 +48,6 @@ class UserMainSerializer(BaseUserSerializer):
     def get_is_subscribed(self, obj):
         return self.context.get('request').user.subscriptions.filter(subscribed_to_id=obj.id).exists()
 
-    def validate_is_subscribed(self, value):
-        print(value)
-        return value
 
 class RecipeBaseSerializer(serializers.ModelSerializer):
     class Meta:
