@@ -100,13 +100,6 @@ class Recipe(models.Model):
     def __str__(self):
         return f'{self.name} от {self.author}'
 
-    def delete(self, using=None, keep_parents=False):
-        '''
-        Удалить картинку вместе с рецептом.
-        '''
-        self.image.storage.delete(self.image.name)
-        super().delete()
-
 
 class Subscription(models.Model):
     subscriber = models.ForeignKey(
