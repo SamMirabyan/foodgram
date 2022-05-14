@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -40,7 +41,7 @@ class Ingredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
     )
-    amount = models.FloatField(verbose_name='Количество')
+    amount = models.SmallIntegerField(verbose_name='Количество')
 
     def __str__(self):
         return (f'{self.ingredient.name}: {self.amount} '
@@ -61,9 +62,12 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=128, verbose_name='Название')
+    name = models.CharField(max_length=200, verbose_name='Название')
     text = models.TextField(max_length=4000, verbose_name='Описание')
-    cooking_time = models.IntegerField(verbose_name='Время приготовления')
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(360)],
+        verbose_name='Время приготовления'
+    )
     image = models.ImageField(
         upload_to='recipes/images/',
         verbose_name='Картинка',
