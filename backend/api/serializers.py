@@ -36,19 +36,21 @@ class UserMainSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', )
 
-    def __init__(self, *args, **kwargs):
+    def to_representation(self, instance):
         '''
         Если пользователь не авторизован,
         то не показываем поле is_subscribed.
         '''
-        if kwargs:
-            if not kwargs.get('context').get('request').user.is_authenticated:
-                del self.fields['is_subscribed']
-        return super().__init__(*args, **kwargs)
+        if not self.context.get('request').user.is_authenticated:
+            self.fields.pop('is_subscribed')
+        return super().to_representation(instance)
 
     def get_is_subscribed(self, obj):
         return self.context.get('request').user.subscriptions.filter(subscribed_to_id=obj.id).exists()
 
+    def validate_is_subscribed(self, value):
+        print(value)
+        return value
 
 class RecipeBaseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -145,16 +147,15 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
         model = api_models.Recipe
         exclude = ('favorited_by', 'added_to_cart',)
 
-    def __init__(self, *args, **kwargs):
+    def to_representation(self, instance):
         '''
         Если пользователь не авторизован,
         то не показываем поля is_favorited и is_in_shopping_cart.
         '''
-        if kwargs:
-            if not kwargs.get('context').get('request').user.is_authenticated:
-                del self.fields['is_favorited']
-                del self.fields['is_in_shopping_cart']
-        return super().__init__(*args, **kwargs)
+        if not self.context.get('request').user.is_authenticated:
+            self.fields.pop('is_favorited')
+            self.fields.pop('is_in_shopping_cart')
+        return super().to_representation(instance)
 
     def get_is_favorited(self, obj: api_models.Recipe) -> bool:
         '''
@@ -213,6 +214,10 @@ class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         if value <= 0:
             raise serializers.ValidationError({
                 'cooking_time': 'Ошибка! Время приготовления не может быть меньше или равно нулю'
+            })
+        elif value > 360:
+            raise serializers.ValidationError({
+                'cooking_time': 'Ошибка! Вы пытаетесь сохранить рецепт со сроком приготовления более 6 часов. В данном случае рекомендуется при создании указать время, затраченное на выполнение основных операций. А время на доведение до готовности указать в самом описании рецепта.'
             })
         return value
 
