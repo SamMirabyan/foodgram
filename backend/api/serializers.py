@@ -1,8 +1,9 @@
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from . import models as api_models
-from .custom_fields import IngredientIdField, IngredientTypeField, IngredientUnitField
+from .custom_fields import Base64ImageField, IngredientIdField, IngredientTypeField, IngredientUnitField
 from .pagination import RecipesLimitPagination
 
 User = get_user_model()
@@ -138,6 +139,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    # image = Hyperlink
 
     class Meta:
         model = api_models.Recipe
@@ -186,6 +188,7 @@ class SimpleIngredientSerializer(serializers.ModelSerializer):
 class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     ingredients = SimpleIngredientSerializer(many=True)
+    image = Base64ImageField()
 
     class Meta:
         model = api_models.Recipe
