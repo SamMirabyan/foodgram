@@ -80,7 +80,6 @@ class UserSubscriptionSerializer(UserMainSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = api_models.Subscription
         fields = ('subscriber', 'subscribed_to',)
@@ -138,7 +137,6 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    # image = Hyperlink
 
     class Meta:
         model = api_models.Recipe
@@ -193,6 +191,19 @@ class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author',)
 
     def create(self, validated_data):
+        '''
+        DRF по умолчанию не сериализует глубоко вложенные связи моделей.
+        Т.к. у нас модель Ingredient связана с моделью IngredientType,
+        при получении запроса мы сначала сериализуем именно IngredientType,
+        чтобы понять, что такой тип ингредиента существует.
+
+        Если тип ингредиента и его количество прошли валидацию,то мы:
+          1. Убираем словарь ingredients валидированных данных.
+          2. Создаем экземпляр рецепта без ингредиентов.
+          3. По каждому ключу словаря ingredients
+             создаем экземпляр класса Ingredient и добавляем
+             в соответствующий атрибут экземпляра рецепта. 
+        '''
         ingredients = validated_data.pop('ingredients')
         instance = super().create(validated_data)
         for item in ingredients:
@@ -217,6 +228,15 @@ class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
                 'cooking_time': 'Ошибка! Вы пытаетесь сохранить рецепт со сроком приготовления более 6 часов. В данном случае рекомендуется при создании указать время, затраченное на выполнение основных операций. А время на доведение до готовности указать в самом описании рецепта.'
             })
         return value
+
+    def to_representation(self, instance):
+        '''
+        Возвращаем сериализатор полного представления экземплара
+        рецепта в ответе.
+        '''
+        serializer = RecipeReadOnlySerializer(instance)
+        serializer.context['request'] = self.context.get('request')
+        return serializer.data
 
 
 class PasswordSerializer(serializers.Serializer):

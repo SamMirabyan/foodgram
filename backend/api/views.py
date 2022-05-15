@@ -33,35 +33,6 @@ class RecipeReadOnlyViewSet(ModelViewSet):
     pagination_class = PageLimitPagination
     permission_classes = (IsAuthorOrStaffOrReadOnly,)
 
-    def create(self, request, *args, **kwargs):
-        # сериализуем и создаем рецепт
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        recipe = serializer.instance
-
-        # в ответе возвращаем уже существующий сериализованный рецепт
-        response_serializer = RecipeReadOnlySerializer(recipe)
-        response_serializer.context['request'] = request
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
-            instance._prefetched_objects_cache = {}
-
-        # в ответе возвращаем уже существующий сериализованный рецепт
-        response_serializer = RecipeReadOnlySerializer(instance)
-        response_serializer.context['request'] = request
-        return Response(response_serializer.data)
-
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
             return RecipeReadOnlySerializer
@@ -72,57 +43,48 @@ class RecipeReadOnlyViewSet(ModelViewSet):
         permission_classes=(permissions.IsAuthenticated,)
     )
     def favorites(self, *args, **kwargs):
-        user = self.request.user
-        recipe = self.get_object()
-        if self.request.method == 'POST':
-            if user.favorites.filter(id=recipe.id).exists():
-                raise ValidationError({
-                    'Ошибка добавления в избранное!':
-                    f'Рецепт уже в избранном пользователя {user}.'
-                })
-            user.favorites.add(recipe)
-            serializer = RecipeBaseSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        if user.favorites.filter(id=recipe.id).exists():
-            user.favorites.remove(recipe)
-            return Response({'Успешно!': 'Рецепт удален из списка избранных.'}, status=status.HTTP_200_OK)
-
-        raise ValidationError({
-                'Ошибка удаления из избранного!':
-                f'Рецепт отсутсвует в избранном пользователя {user}.'
-        })
+        return self.manage_favorites_or_shopping_cart('favorites', *args, **kwargs)
 
     @action(
         methods=['post', 'delete'], detail=True,
         permission_classes=(permissions.IsAuthenticated,)
     )
     def shopping_cart(self, *args, **kwargs):
+        return self.manage_favorites_or_shopping_cart('shopping_cart', *args, **kwargs)
+
+    def manage_favorites_or_shopping_cart(self, attr_name, *args, **kwargs):
+        word_forms = {
+            'favorites': 'Избранное',
+            'shopping_cart': 'Корзина',
+        }
         user = self.request.user
+        attr = getattr(user, attr_name, None)
+        if not attr:
+            raise ValidationError('Название аргумента attr_name должно соответствовать атрибуту экземпляра модели User')
+        word = word_forms.get(attr_name, 'Избранное')
         recipe = self.get_object()
         if self.request.method == 'POST':
-            if user.shopping_cart.filter(id=recipe.id).exists():
+            if attr.filter(id=recipe.id).exists():
                 raise ValidationError({
-                    'Ошибка добавления в корзину!':
-                    f'Рецепт уже в корзине пользователя {user}.'
+                    'Ошибка добавления!':
+                    f'Рецепт уже добавлен в раздел {word} пользователя {user}.'
                 })
-            user.shopping_cart.add(recipe)
+            attr.add(recipe)
             serializer = RecipeBaseSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if user.shopping_cart.filter(id=recipe.id).exists():
-            user.shopping_cart.remove(recipe)
-            return Response({'Успешно!': 'Рецепт удален из вашей корзины.'}, status=status.HTTP_200_OK)
+        if attr.filter(id=recipe.id).exists():
+            attr.remove(recipe)
+            return Response({'Успешно!': f'Рецепт удален из раздела {word}.'}, status=status.HTTP_200_OK)
 
         raise ValidationError({
-                    'Ошибка удаления из корзины!':
-                    f'Рецепт отсутсвует в корзине пользователя {user}.'
-                })
+                'Ошибка удаления!':
+                f'Рецепт отсутсвует в разделе {word} пользователя {user}.'
+        })
 
     @action(methods=['get'], detail=False)
     def download_shopping_cart(self, *args, **kwargs):
-        #recipes = self.request.user.shopping_cart
-        recipes = User.objects.get(username='bill').shopping_cart
+        recipes = self.request.user.shopping_cart
         shopping_cart = recipes.values('ingredients__ingredient__name').order_by('ingredients__ingredient__name').annotate(total=Sum('ingredients__amount'))
         shopping_dict = {}
         for item in shopping_cart:
