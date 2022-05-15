@@ -1,4 +1,3 @@
-
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -181,7 +180,7 @@ class SimpleIngredientSerializer(serializers.ModelSerializer):
         return value
 
 
-class RecipeCreateUpdateDeleteSerializer(serializers.ModelSerializer):
+class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     ingredients = SimpleIngredientSerializer(many=True)
     image = Base64ImageField()
