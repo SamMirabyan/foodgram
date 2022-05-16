@@ -58,10 +58,30 @@ class FavoritesShoppingCartMixin:
 
     @action(methods=['get'], detail=False)
     def download_shopping_cart(self, *args, **kwargs):
-        recipes = self.request.user.shopping_cart
+        from .models import User
+        #recipes = self.request.user.shopping_cart
+        recipes = User.objects.get(username='sam').shopping_cart
         shopping_cart = recipes.values('ingredients__ingredient__name').order_by('ingredients__ingredient__name').annotate(total=Sum('ingredients__amount'))
         shopping_dict = {}
         for item in shopping_cart:
             ingredient, amount = item.values()
             shopping_dict.update({ingredient: amount})
         return Response(shopping_dict)
+
+    @action(methods=['get'], detail=False)
+    def experiment(self, *args, **kwargs):
+        from django.shortcuts import HttpResponse, render
+        from .models import User
+        from .pdf_generator import render_pdf
+        #recipes = self.request.user.shopping_cart
+        recipes = User.objects.get(username='sam').shopping_cart
+        shopping_cart = recipes.values('ingredients__ingredient__name', 'ingredients__ingredient__measurement_unit').order_by('ingredients__ingredient__name').annotate(total=Sum('ingredients__amount'))
+        shopping_dict = {}
+        for item in shopping_cart:
+            ingredient, unit, amount = item.values()
+            shopping_dict.update({ingredient: str(amount) + ' ' + unit})
+        request = self.request
+        data = {'username': 'george', 'list': shopping_dict}
+        template = 'shopping_list2.html'
+        return render_pdf(request, data, template)
+        #return render(request, template, data)
