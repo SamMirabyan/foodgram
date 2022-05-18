@@ -49,7 +49,7 @@ def render_pdf(request, context, template_path):
     #context = extract_request_variables(request)
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="shopping_list_{request.user}.pdf"'
 
     template = get_template(template_path)
     html = template.render(context)

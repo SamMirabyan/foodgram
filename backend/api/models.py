@@ -1,8 +1,10 @@
+from django.apps import apps
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .utils import Some
 
 class User(AbstractUser):
     '''
@@ -22,13 +24,22 @@ class User(AbstractUser):
 class IngredientType(models.Model):
     name = models.CharField(
         max_length=128,
-        unique=True,
         verbose_name='Название'
     )
     measurement_unit = models.CharField(
         max_length=32,
         verbose_name='Единица измерения'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient_type'
+            )
+        ]
+        verbose_name = "Ингредиент"
+        verbose_name_plural = "Ингредиенты"
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
