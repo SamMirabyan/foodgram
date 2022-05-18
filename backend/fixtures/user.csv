@@ -1,0 +1,5 @@
+username,email,first_name,last_name,password
+sam,sam@hello.py,sam,smith,Test_user
+bob,bob@hello.py,bob,forge,Test_user
+sarah,sarah@hello.py,sarah,boyd,Test_user
+jane,jane@hello.py,jane,austin,Test_user
