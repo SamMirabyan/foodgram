@@ -5,18 +5,18 @@ from ._common import MODELS
 
 
 class Command(BaseCommand):
-    help = 'Remove all data from models.'
+    help = 'Обнулить все модели в БД.'
 
     def deplete_model(self, model_name: str, *args, **options):
         '''
-        Remove test data from given model.
+        Обнулить одну модель.
         '''
-        model = apps.get_model('reviews', model_name.title())
+        model = apps.get_model('api', model_name)
         model.objects.all().delete()
 
     def deplete_db(self, *args, **kwargs):
         '''
-        Remove test data from all models.
+        Обнулить все модели.
         '''
         success_message = 'Test data for model {} removed successfully!'
         error_message = 'An error occured during deleting data from model {}!'

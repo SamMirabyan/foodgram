@@ -14,13 +14,16 @@ class Command(BaseCommand):
         Наполнить данными одну модель.
         '''
         model = apps.get_model('api', model_name)
+        instances = []
         file_name = model_name + '.csv'
         with open(PATH / file_name) as file_object:
             csv_file = csv.reader(file_object, delimiter=',')
             headers = next(csv_file)
             for row in csv_file:
                 data = {key: value for key, value in zip(headers, row)}
-                model.objects.get_or_create(**data)
+                instance = model(**data)
+                instances.append(instance)
+            model.objects.bulk_create(instances)
 
     def populate_db(self, *args, **kwargs):
         '''

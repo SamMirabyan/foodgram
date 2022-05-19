@@ -1,9 +1,7 @@
-from functools import partial
-
 from django.apps import AppConfig
-from django.db.models.signals import post_delete, post_migrate
+from django.db.models.signals import post_delete
 
-from .signals import delete_recipe, populate_ingredient_type_table
+from .utils.signals import delete_recipe
 
 
 class ApiConfig(AppConfig):
@@ -11,5 +9,6 @@ class ApiConfig(AppConfig):
     name = 'api'
 
     def ready(self):
-        post_migrate.connect(partial(populate_ingredient_type_table, model=self.get_model('ingredienttype')), sender=self)
+        # слушаем сигнал post_delete
+        # и при каждом удалении рецепта удаляем картинку.
         post_delete.connect(receiver=delete_recipe, sender=self.get_model('recipe'))
