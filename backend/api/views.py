@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import status
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from .mixins import FavoritesShoppingCartMixin
 from .models import IngredientType, Recipe, Subscription, Tag
 from .pagination import PageLimitPagination
@@ -30,6 +32,9 @@ class RecipeViewSet(ModelViewSet, FavoritesShoppingCartMixin):
     queryset = Recipe.objects.all()
     pagination_class = PageLimitPagination
     permission_classes = (IsAuthorOrStaffOrReadOnly,)
+
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_cart',) 
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
