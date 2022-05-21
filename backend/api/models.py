@@ -82,6 +82,10 @@ class Recipe(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(360)],
         verbose_name='Время приготовления'
     )
+    pub_date = models.DateField(
+        auto_now_add=True,
+        verbose_name='Дата добавления'
+    )
     image = models.ImageField(
         upload_to='recipes/images/',
         verbose_name='Картинка',
@@ -114,6 +118,9 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Тэги',
     )
+
+    class Meta:
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return f'{self.name} от {self.author}'

@@ -12,6 +12,7 @@ router.register('users', api_views.UserReadOnlyViewset)
 app_name = 'api'
 
 urlpatterns = [
+    path('', api_views.index),
     path('', include(router.urls)),
     path('auth/', include('djoser.urls.authtoken')),
 ]

@@ -44,10 +44,10 @@ class Command(BaseCommand):
                 print(e)
 
     def add_attrs_to_recipes(self, *args, **kwargs):
-        file_name = 'test.csv'
-        success_message = 'Атрибут успешно добавлен к модели Recipe'
-        error_message = 'При добавлении атрибута в модель Recipe произошла ошибка!'
-        self.stdout.write(self.style.SQL_FIELD('Добавляем атрибуты модели Recipe'))
+        file_name = 'recipe_attributes.csv'
+        success_message = 'Атрибуты модели Recipe успешно заполнены'
+        error_message = 'При заполнении атрибутов модели Recipe произошла ошибка!'
+        self.stdout.write(self.style.MIGRATE_HEADING('Добавляем атрибуты модели Recipe'))
         try:
             populate_recipes(file_name)
             self.stdout.write(self.style.SUCCESS(success_message))
@@ -55,17 +55,6 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(error_message))
             print(e)
 
-    # def add_genres_to_titles(self, *args, **kwargs):
-    #     success_message = 'Genres added to titles successfully!'
-    #     error_message = 'An error occured while adding genres to titles!'
-    #     try:
-    #         add_genres()
-    #         self.stdout.write(self.style.SUCCESS(success_message))
-    #     except Exception as e:
-    #         self.stderr.write(self.style.ERROR(error_message))
-    #         print(e)
-
     def handle(self, *args, **options):
         self.populate_db()
         self.add_attrs_to_recipes()
-        # self.add_genres_to_titles()

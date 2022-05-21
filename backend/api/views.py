@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -9,11 +9,25 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from .mixins import FavoritesShoppingCartMixin
 from .models import IngredientType, Recipe, Subscription, Tag
-from .pagination import PageLimitPagination
+from .pagination import PageLimitPagination, RecipesLimitPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaffOrReadOnly
 from .serializers import BaseUserSerializer, IngredientTypeSerializer, PasswordSerializer, RecipeCreateUpdateSerializer, RecipeReadOnlySerializer, SubscriptionSerializer, TagSerializer, UserMainSerializer, UserSingUpSerializer, UserSubscriptionSerializer
+from .utils.filters import RecipeFilter
 
 User = get_user_model()
+
+
+@api_view(['GET'])
+def index(request):
+    from .models import Recipe
+    from rest_framework.pagination import PageNumberPagination
+    recipes = Recipe.objects.all()
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    paginated = paginator.paginate_queryset(recipes, request=request)
+    serializer = RecipeReadOnlySerializer(paginated, many=True)
+    serializer.context['request'] = request
+    return paginator.get_paginated_response(serializer.data)
 
 
 class TagViewSet(ModelViewSet):
@@ -34,7 +48,7 @@ class RecipeViewSet(ModelViewSet, FavoritesShoppingCartMixin):
     permission_classes = (IsAuthorOrStaffOrReadOnly,)
 
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_cart',) 
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:

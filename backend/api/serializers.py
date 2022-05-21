@@ -42,7 +42,7 @@ class UserMainSerializer(BaseUserSerializer):
         то не показываем поле is_subscribed.
         '''
         if not self.context.get('request').user.is_authenticated:
-            self.fields.pop('is_subscribed')
+            self.fields.pop('is_subscribed', None)
         return super().to_representation(instance)
 
     def get_is_subscribed(self, obj):
@@ -134,7 +134,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = api_models.Recipe
-        exclude = ('favorited_by', 'added_to_cart',)
+        fields = ('id', 'name', 'text', 'author', 'cooking_time', 'ingredients', 'tags', 'image', 'is_favorited', 'is_in_shopping_cart',)
 
     def to_representation(self, instance):
         '''
@@ -142,8 +142,8 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
         то не показываем поля is_favorited и is_in_shopping_cart.
         '''
         if not self.context.get('request').user.is_authenticated:
-            self.fields.pop('is_favorited')
-            self.fields.pop('is_in_shopping_cart')
+            self.fields.pop('is_favorited', None)
+            self.fields.pop('is_in_shopping_cart', None)
         return super().to_representation(instance)
 
     def get_is_favorited(self, obj: api_models.Recipe) -> bool:
