@@ -3,7 +3,7 @@ import csv
 from django.apps import apps
 from django.core.management.base import BaseCommand
 
-from ._common import MODELS, PATH
+from ._common import MODELS, populate_recipes, PATH
 
 
 class Command(BaseCommand):
@@ -43,6 +43,18 @@ class Command(BaseCommand):
                 )
                 print(e)
 
+    def add_attrs_to_recipes(self, *args, **kwargs):
+        file_name = 'test.csv'
+        success_message = 'Атрибут успешно добавлен к модели Recipe'
+        error_message = 'При добавлении атрибута в модель Recipe произошла ошибка!'
+        self.stdout.write(self.style.SQL_FIELD('Добавляем атрибуты модели Recipe'))
+        try:
+            populate_recipes(file_name)
+            self.stdout.write(self.style.SUCCESS(success_message))
+        except Exception as e:
+            self.stderr.write(self.style.ERROR(error_message))
+            print(e)
+
     # def add_genres_to_titles(self, *args, **kwargs):
     #     success_message = 'Genres added to titles successfully!'
     #     error_message = 'An error occured while adding genres to titles!'
@@ -55,4 +67,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.populate_db()
+        self.add_attrs_to_recipes()
         # self.add_genres_to_titles()
