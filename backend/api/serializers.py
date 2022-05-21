@@ -4,6 +4,7 @@ from rest_framework import serializers
 from . import models as api_models
 from .custom_fields import Base64ImageField, IngredientIdField, IngredientTypeField, IngredientUnitField
 from .pagination import RecipesLimitPagination
+from .utils.validators import _validate_hex
 
 User = get_user_model()
 
@@ -105,13 +106,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_color(self, value):
-        import re
-        regexp = '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
-        if not re.fullmatch(regexp, value):
-            raise serializers.ValidationError({
-                'color': 'Ошибка! Задан неверный цветовой код.'
-            })
-        return value
+        return _validate_hex(value, serializers.ValidationError)
 
 
 class IngredientTypeSerializer(serializers.ModelSerializer):
@@ -206,7 +201,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         instance = super().create(validated_data)
         for item in ingredients:
-            ingredient = api_models.Ingredient.objects.create(ingredient=item['id'], amount=item['amount'])
+            ingredient = api_models.Ingredient.objects.get_or_create(ingredient=item['id'], amount=item['amount'])
             instance.ingredients.add(ingredient)
         return instance
 
