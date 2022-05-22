@@ -12,7 +12,7 @@ from .models import IngredientType, Recipe, Subscription, Tag
 from .pagination import PageLimitPagination, RecipesLimitPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaffOrReadOnly
 from .serializers import BaseUserSerializer, IngredientTypeSerializer, PasswordSerializer, RecipeCreateUpdateSerializer, RecipeReadOnlySerializer, SubscriptionSerializer, TagSerializer, UserMainSerializer, UserSingUpSerializer, UserSubscriptionSerializer
-from .utils.filters import RecipeFilter
+from .utils.filters import IngredientFilter, RecipeFilter
 
 User = get_user_model()
 
@@ -40,6 +40,9 @@ class IngredientViewSet(ModelViewSet):
     queryset = IngredientType.objects.all()
     serializer_class = IngredientTypeSerializer
     permission_classes = (IsAdminOrReadOnly,)
+
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(ModelViewSet, FavoritesShoppingCartMixin):

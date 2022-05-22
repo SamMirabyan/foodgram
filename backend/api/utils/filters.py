@@ -1,12 +1,15 @@
 import django_filters
 
-from api.models import Recipe
+from api.models import IngredientType, Recipe
 
 
-CHOICES = (
-    (0, False),
-    (1, True),
-)
+class IngredientFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = IngredientType
+        fields = ('name',)
+
 
 class RecipeFilter(django_filters.FilterSet):
     tags = django_filters.CharFilter(method='tag_list_filter')
@@ -15,7 +18,7 @@ class RecipeFilter(django_filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ['tags', 'author',]
+        fields = ('tags', 'author',)
 
     def tag_list_filter(self, queryset, name, value):
         # queryset = Recipe.objects.all()
