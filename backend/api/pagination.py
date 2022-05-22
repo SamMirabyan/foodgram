@@ -1,18 +1,19 @@
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
+from rest_framework.pagination import (LimitOffsetPagination,
+                                       PageNumberPagination)
 
 
 class PageLimitPagination(PageNumberPagination):
     page_size = 6
-    page_size_query_param = 'limit'
+    page_size_query_param = "limit"
     max_page_size = 10
 
 
 class RecipesLimitPagination(LimitOffsetPagination):
     default_limit = 6
-    limit_query_param = 'recipes_limit'
+    limit_query_param = "recipes_limit"
 
     def get_offset(self, request):
-        '''
+        """
         Всегда возвращаем 0, чтобы рецепты в выдаче шли с самого начала.
-        '''
+        """
         return 0

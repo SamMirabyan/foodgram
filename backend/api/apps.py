@@ -5,10 +5,12 @@ from .utils.signals import delete_recipe
 
 
 class ApiConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'api'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "api"
 
     def ready(self):
         # слушаем сигнал post_delete
         # и при каждом удалении рецепта удаляем картинку.
-        post_delete.connect(receiver=delete_recipe, sender=self.get_model('recipe'))
+        post_delete.connect(
+            receiver=delete_recipe, sender=self.get_model("recipe")
+        )
