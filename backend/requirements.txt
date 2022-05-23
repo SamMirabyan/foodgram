@@ -1,0 +1,14 @@
+asgiref==3.5.1
+Django==3.2.9
+django-filter==21.1
+djangorestframework==3.13.1
+djoser==2.1.0
+Pillow==9.1.0
+PyJWT==2.3.0
+pytest==7.1.2
+pytest-django==4.5.2
+python-decouple==3.6
+pytz==2022.1
+requests==2.27.1
+sqlparse==0.4.2
+xhtml2pdf==0.2.7
