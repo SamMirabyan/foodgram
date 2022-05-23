@@ -2,8 +2,8 @@ import re
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from rest_framework.exceptions import APIException
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 
 
 def _validate_hex(value: str, exc_type: Exception):

@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from .serializers import RecipeBaseSerializer
+from .utils.pdf_generator import render_pdf
 
 
 class FavoritesShoppingCartMixin:
@@ -41,7 +42,8 @@ class FavoritesShoppingCartMixin:
         attr = getattr(user, attr_name, None)
         if not attr:
             raise ValidationError(
-                "Название аргумента attr_name должно соответствовать атрибуту экземпляра модели User"
+                "Название аргумента attr_name должно соответствовать "
+                "атрибуту экземпляра модели User."
             )
         word = word_forms.get(attr_name, "Избранное")
         recipe = self.get_object()
@@ -49,7 +51,8 @@ class FavoritesShoppingCartMixin:
             if attr.filter(id=recipe.id).exists():
                 raise ValidationError(
                     {
-                        "Ошибка добавления!": f"Рецепт уже добавлен в раздел {word} пользователя {user}."
+                        "Ошибка добавления!": f"Рецепт уже добавлен в раздел "
+                                              f"{word} пользователя {user}."
                     }
                 )
             attr.add(recipe)
@@ -65,16 +68,18 @@ class FavoritesShoppingCartMixin:
 
         raise ValidationError(
             {
-                "Ошибка удаления!": f"Рецепт отсутсвует в разделе {word} пользователя {user}."
+                "Ошибка удаления!": f"Рецепт отсутсвует в разделе {word} "
+                                    f"пользователя {user}."
             }
         )
 
-    @action(methods=["get"], detail=False)
+    @action(
+        methods=["get"],
+        detail=False,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
     def download_shopping_cart(self, *args, **kwargs):
-        from .models import User
-
-        # recipes = self.request.user.shopping_cart
-        recipes = User.objects.get(username="sam").shopping_cart
+        recipes = self.request.user.shopping_cart
         shopping_cart = (
             recipes.values("ingredients__ingredient__name")
             .order_by("ingredients__ingredient__name")
@@ -88,13 +93,8 @@ class FavoritesShoppingCartMixin:
 
     @action(methods=["get"], detail=False)
     def experiment(self, *args, **kwargs):
-        from django.shortcuts import HttpResponse, render
-
-        from .models import User
-        from .utils.pdf_generator import render_pdf
-
-        # recipes = self.request.user.shopping_cart
-        recipes = User.objects.get(username="sam").shopping_cart
+        user = self.request.user
+        recipes = user.shopping_cart
         shopping_cart = (
             recipes.values(
                 "ingredients__ingredient__name",
@@ -108,7 +108,6 @@ class FavoritesShoppingCartMixin:
             ingredient, unit, amount = item.values()
             shopping_dict.update({ingredient: str(amount) + " " + unit})
         request = self.request
-        data = {"username": "george", "list": shopping_dict}
+        data = {"username": user.username, "list": shopping_dict}
         template = "shopping_list2.html"
         return render_pdf(request, data, template)
-        # return render(request, template, data)
