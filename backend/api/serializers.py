@@ -78,6 +78,7 @@ class UserMainSerializer(BaseUserSerializer):
         или если пользователь видит свой профиль,
         то не показываем поле `is_subscribed`.
         """
+        print(instance)
         if (
             not self.context.get("request").user.is_authenticated
             or self.context.get("request").user.id == instance.id
@@ -150,8 +151,7 @@ class UserSubscriptionSerializer(UserMainSerializer):
         paginator = RecipesLimitPagination()
         paginated = paginator.paginate_queryset(queryset, request)
         serializer = RecipeBaseSerializer(paginated, many=True)
-        # return serializer.data
-        return paginator.get_paginated_response(serializer.data)
+        return serializer.data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()

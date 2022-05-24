@@ -88,9 +88,8 @@ class UserViewset(ModelViewSet):
         data = self.request.data
         data["user"] = self.request.user.id
         serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
-            return Response("Пароль успешно изменен!")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        return Response("Пароль успешно изменен!")
 
     @action(
         methods=["get"],
@@ -100,11 +99,13 @@ class UserViewset(ModelViewSet):
     )
     def subscriptions(self, *args, **kwargs):
         user = self.request.user
-        if queryset := user.subscriptions.all().order_by("-id"):
-            subscriptions = [user.subscribed_to for user in queryset]
+        if (
+            queryset := User.objects.filter(
+                **{"subscribers__subscriber": user}).order_by("-id")
+        ):
             paginator = PageLimitPagination()
             paginated = paginator.paginate_queryset(
-                subscriptions, request=self.request
+                queryset, request=self.request
             )
             serializer = self.serializer_class(paginated, many=True)
             serializer.context["request"] = self.request
@@ -135,9 +136,8 @@ class UserViewset(ModelViewSet):
             )
         data = {"subscriber": user.id, "subscribed_to": subscribe_to.id}
         serializer = SubscriptionSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            serializer = self.serializer_class(subscribe_to)
-            serializer.context["request"] = self.request
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        serializer = self.serializer_class(subscribe_to)
+        serializer.context["request"] = self.request
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -11,9 +11,10 @@ def populate_model_from_migration(apps, schema_editor, model_name, file_path):
     try:
         with open(file_path) as file_obj:
             csv_file = csv.reader(file_obj, delimiter=",")
+            headers = next(csv_file)
             for row in csv_file:
-                name, unit = row
-                instance = model(name=name, measurement_unit=unit)
+                data = {key: value for key, value in zip(headers, row)}
+                instance = model(**data)
                 pre_saved_instances.append(instance)
             model.objects.bulk_create(pre_saved_instances)
     except Exception as e:
