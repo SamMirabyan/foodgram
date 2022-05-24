@@ -8,12 +8,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 
-"""
-Боевые настройки
-DEBUG = config('DEBUG', cast=bool)
-"""
 
-DEBUG = True
+# Боевые настройки
+DEBUG = config('DEBUG', cast=bool)
+
+
+# DEBUG = True
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
@@ -66,14 +66,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
+""" настройки для разработки
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+"""
 
-""" боевые настройки
+# боевые настройки
 DATABASES = {
     'default': {
         'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
@@ -84,7 +86,7 @@ DATABASES = {
         'PORT': config('DB_PORT', cast=int, default='5432')
     }
 }
-"""
+
 
 
 AUTH_PASSWORD_VALIDATORS = [
