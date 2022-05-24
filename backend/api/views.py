@@ -36,6 +36,9 @@ class IngredientViewSet(ModelViewSet):
 
 
 class RecipeViewSet(ModelViewSet, FavoritesShoppingCartMixin):
+    """
+    Обработка запросов на эндпоинты `/api/recipes/*`.
+    """
     queryset = Recipe.objects.all()
     pagination_class = PageLimitPagination
     permission_classes = (IsAuthorOrStaffOrReadOnly,)
@@ -50,6 +53,9 @@ class RecipeViewSet(ModelViewSet, FavoritesShoppingCartMixin):
 
 
 class UserViewset(ModelViewSet):
+    """
+    Обработка запросов на эндпоинты `/api/users/*`.
+    """
     queryset = User.objects.all().order_by(
         "id"
     )  # add order by to avoid UnorderedObjectListWarning

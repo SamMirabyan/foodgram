@@ -11,6 +11,10 @@ User = get_user_model()
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
+    """
+    Усеченный сериализатор представления пользователя (User)
+    для отображения данных в своем профиле.
+    """
     class Meta:
         model = User
         fields = (
@@ -23,6 +27,9 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 
 class UserSingUpSerializer(BaseUserSerializer):
+    """
+    Сериализатор создания пользователя (User).
+    """
     password = serializers.CharField(write_only=True)
 
     class Meta(BaseUserSerializer.Meta):
@@ -37,7 +44,11 @@ class UserSingUpSerializer(BaseUserSerializer):
         read_only_fields = ("id",)
 
     def save(self, **kwargs):
-        raw_password = self.validated_data.get("password")
+        """
+        Дополнительно валидируем пароль.
+        Сохраняем после успешной валидации.
+        """
+        raw_password = self.validated_data.pop("password", '123')
         _validate_password(raw_password)
         instance = super().save(**kwargs)
         instance.set_password(raw_password)
@@ -46,6 +57,9 @@ class UserSingUpSerializer(BaseUserSerializer):
 
 
 class UserMainSerializer(BaseUserSerializer):
+    """
+    Сериализатор представления и обновления пользователя (User).
+    """
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta(BaseUserSerializer.Meta):
@@ -79,6 +93,9 @@ class UserMainSerializer(BaseUserSerializer):
         )
 
     def update(self, instance, validated_data):
+        """
+        Валидируем пароль. Сохраняем после успешной валидации.
+        """
         if ("username" or "email") in self.initial_data:
             raise serializers.ValidationError("Это поле нельзя изменить!")
         elif password := self.initial_data.get("password"):
@@ -87,6 +104,10 @@ class UserMainSerializer(BaseUserSerializer):
 
 
 class RecipeBaseSerializer(serializers.ModelSerializer):
+    """
+    Усеченный серилизатор представления рецептов (Recipe)
+    в сериализаторе UserSubscriptionSerializer.
+    """
     class Meta:
         model = api_models.Recipe
         fields = (
@@ -98,6 +119,11 @@ class RecipeBaseSerializer(serializers.ModelSerializer):
 
 
 class UserSubscriptionSerializer(UserMainSerializer):
+    """
+    Комбинированный сериализатор представления
+    пользователей (User) и их подписок (Subscription).
+    Также используется 'усеченный' сериалзитор рецептов.
+    """
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -132,6 +158,10 @@ class UserSubscriptionSerializer(UserMainSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор создания подписки.
+    Для вывода представлений используется UserSubscriptionSerializer.
+    """
     class Meta:
         model = api_models.Subscription
         fields = (
@@ -159,6 +189,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор создания, представления, обновления тэгов (Tag).
+    """
     class Meta:
         model = api_models.Tag
         fields = "__all__"
@@ -168,6 +201,10 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientTypeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор создания, представления,
+    обновления и удаления типов ингредиента (IngredientType).
+    """
     class Meta:
         model = api_models.IngredientType
         fields = "__all__"
@@ -184,6 +221,10 @@ class IngredientTypeSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор комбинированного представления
+    ингредиента (Ingredient) и его типа (IngredientType).
+    """
     name = IngredientTypeField(source="ingredient", read_only=True)
     measurement_unit = IngredientUnitField(source="ingredient", read_only=True)
     id = IngredientIdField(source="ingredient", read_only=True)
@@ -198,7 +239,11 @@ class IngredientSerializer(serializers.ModelSerializer):
         )
 
 
-class SimpleIngredientSerializer(serializers.ModelSerializer):
+class CreateIngredientSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для валидации и сохранения
+    ингредиента (Ingredient) при создании рецепта (Recipe).
+    """
     id = serializers.PrimaryKeyRelatedField(
         queryset=api_models.IngredientType.objects.all()
     )
@@ -225,6 +270,9 @@ class SimpleIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadOnlySerializer(serializers.ModelSerializer):
+    """
+    Сериализатор основного представления моедли Recipe.
+    """
     author = UserMainSerializer()
     ingredients = IngredientSerializer(many=True)
     tags = TagSerializer(many=True)
@@ -279,8 +327,11 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор создания экземпляров модели Recipe.
+    """
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    ingredients = SimpleIngredientSerializer(many=True)
+    ingredients = CreateIngredientSerializer(many=True)
     image = Base64ImageField()
 
     class Meta:
@@ -362,6 +413,9 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class PasswordSerializer(serializers.Serializer):
+    """
+    Сериализатор для вью смены пароля.
+    """
     current_password = serializers.CharField()
     new_password = serializers.CharField()
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())

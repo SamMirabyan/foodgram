@@ -7,6 +7,9 @@ from rest_framework.serializers import (ImageField, RelatedField,
 
 
 class Base64ImageField(ImageField):
+    """
+    Конвертация base64-строки в картинку.
+    """
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith("data:image"):
             header, base64_code = data.split(";base64,")
