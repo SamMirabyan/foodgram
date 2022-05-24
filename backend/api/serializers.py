@@ -41,6 +41,7 @@ class UserSingUpSerializer(BaseUserSerializer):
         _validate_password(raw_password)
         instance = super().save(**kwargs)
         instance.set_password(raw_password)
+        instance.save()
         return instance
 
 
