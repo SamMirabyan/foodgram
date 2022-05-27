@@ -78,7 +78,6 @@ class UserMainSerializer(BaseUserSerializer):
         или если пользователь видит свой профиль,
         то не показываем поле `is_subscribed`.
         """
-        print(instance)
         if (
             not self.context.get("request").user.is_authenticated
             or self.context.get("request").user.id == instance.id

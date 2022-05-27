@@ -84,7 +84,8 @@ class Recipe(models.Model):
         auto_now_add=True, verbose_name="Дата добавления"
     )
     image = models.ImageField(
-        upload_to="recipes/images/", verbose_name="Картинка", blank=True
+        upload_to="recipes/images/", verbose_name="Картинка",
+        default="recipes/images/default.jpg"
     )
     author = models.ForeignKey(
         User,

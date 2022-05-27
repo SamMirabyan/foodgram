@@ -2,6 +2,8 @@ import django_filters
 
 from api.models import IngredientType, Recipe
 
+BOOLEAN_CHOICES = ((0, False), (1, True))
+
 
 class IngredientFilter(django_filters.FilterSet):
     """
@@ -20,8 +22,12 @@ class RecipeFilter(django_filters.FilterSet):
     и факту нахождения в избранном или корзине.
     """
     tags = django_filters.CharFilter(method="tag_list_filter")
-    is_favorited = django_filters.BooleanFilter(method="is_favorited_filter")
-    is_in_shopping_cart = django_filters.BooleanFilter(
+    is_favorited = django_filters.ChoiceFilter(
+        choices=BOOLEAN_CHOICES,
+        method="is_favorited_filter"
+    )
+    is_in_shopping_cart = django_filters.ChoiceFilter(
+        choices=BOOLEAN_CHOICES,
         method="is_in_shopping_cart_filter"
     )
 
@@ -65,6 +71,9 @@ class RecipeFilter(django_filters.FilterSet):
         Функция-помощник, прямо не используется.
         """
         user = self.request.user
+        print(value)
+        if isinstance(value, bool):
+            print('fsfsf')
         if not user.is_authenticated or not value:
             return queryset
         return queryset.filter(**{name: user.id})

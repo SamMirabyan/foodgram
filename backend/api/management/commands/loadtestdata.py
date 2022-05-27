@@ -25,6 +25,12 @@ class Command(BaseCommand):
                 instances.append(instance)
             model.objects.bulk_create(instances)
 
+    def set_users_password(self, *args, **kwargs):
+        users = apps.get_model("api", 'user').objects.all()
+        for user in users:
+            user.set_password('Test_user')
+            user.save()
+
     def populate_db(self, *args, **kwargs):
         """
         Наполнить данными несколько моделей.
@@ -65,4 +71,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.populate_db()
+        self.set_users_password()
         self.add_attrs_to_recipes()
