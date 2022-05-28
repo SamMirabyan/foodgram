@@ -79,20 +79,6 @@ class FavoritesShoppingCartMixin:
         permission_classes=(permissions.IsAuthenticated,)
     )
     def download_shopping_cart(self, *args, **kwargs):
-        recipes = self.request.user.shopping_cart
-        shopping_cart = (
-            recipes.values("ingredients__ingredient__name")
-            .order_by("ingredients__ingredient__name")
-            .annotate(total=Sum("ingredients__amount"))
-        )
-        shopping_dict = {}
-        for item in shopping_cart:
-            ingredient, amount = item.values()
-            shopping_dict.update({ingredient: amount})
-        return Response(shopping_dict)
-
-    @action(methods=["get"], detail=False)
-    def experiment(self, *args, **kwargs):
         user = self.request.user
         recipes = user.shopping_cart
         shopping_cart = (

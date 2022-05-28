@@ -43,10 +43,11 @@ class RecipeFilter(django_filters.FilterSet):
         Фильтрация по тэгу (допускается несколько).
           - queryset = Recipe.objects.all()
           - name = 'tags'
-          - value = '1,2'
+          - value = '1,2' - не используется нашим фронтом
         """
-        value_list = value.split(",")
-        return queryset.filter(**{name + "__slug__in": value_list})
+        data = dict(self.data)
+        value_list = data.get('tags')
+        return queryset.filter(**{name + "__slug__in": value_list}).distinct()
 
     def is_favorited_filter(self, queryset, name, value):
         """
