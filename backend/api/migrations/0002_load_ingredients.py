@@ -6,7 +6,7 @@ from django.db import migrations
 from api.utils.migrations import populate_model_from_migration, reverse_func
 
 DEFAULT_INGREDIENTS_CSV_FILE_PATH = (
-    settings.BASE_DIR.parent / "data" / "ingredients.csv"
+    settings.BASE_DIR / "fixtures" / "ingredients.csv"
 )
 
 

@@ -103,13 +103,10 @@ class UserViewset(ModelViewSet):
             queryset := User.objects.filter(
                 **{"subscribers__subscriber": user}).order_by("-id")
         ):
-            paginator = PageLimitPagination()
-            paginated = paginator.paginate_queryset(
-                queryset, request=self.request
-            )
-            serializer = self.serializer_class(paginated, many=True)
+            page = self.paginate_queryset(queryset)
+            serializer = self.serializer_class(page, many=True)
             serializer.context["request"] = self.request
-            return Response(serializer.data)
+            return self.get_paginated_response(serializer.data)
         return Response("Вы не подписаны ни на одного пользователя")
 
     @action(
