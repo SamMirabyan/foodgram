@@ -62,8 +62,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             sudo systemctl stop nginx
-            sudo docker pull foodgram_backend:v1
-            sudo docker stop $(sudo docker ps -a -q)
+            sudo docker stop
             sudo docker-compose rm backend
             sudo docker-compose up -d --build
 
