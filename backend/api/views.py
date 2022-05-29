@@ -89,7 +89,7 @@ class UserViewset(ModelViewSet):
         data["user"] = self.request.user.id
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
-        return Response("Пароль успешно изменен!")
+        return Response(serializer.data)
 
     @action(
         methods=["get"],
@@ -99,15 +99,14 @@ class UserViewset(ModelViewSet):
     )
     def subscriptions(self, *args, **kwargs):
         user = self.request.user
-        if (
+        (
             queryset := User.objects.filter(
                 **{"subscribers__subscriber": user}).order_by("-id")
-        ):
-            page = self.paginate_queryset(queryset)
-            serializer = self.serializer_class(page, many=True)
-            serializer.context["request"] = self.request
-            return self.get_paginated_response(serializer.data)
-        return Response("Вы не подписаны ни на одного пользователя")
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.serializer_class(page, many=True)
+        serializer.context["request"] = self.request
+        return self.get_paginated_response(serializer.data)
 
     @action(
         methods=["post", "delete"],

@@ -361,19 +361,26 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         """
         ingredients = validated_data.pop("ingredients")
         instance = super().create(validated_data)
-        for item in ingredients:
-            ingredient = api_models.Ingredient.objects.get_or_create(
-                ingredient=item["id"], amount=item["amount"]
-            )
-            instance.ingredients.add(ingredient)
+        self.add_ingredients_to_recipe(instance, ingredients)
         return instance
 
     def update(self, instance, validated_data):
+        print(validated_data)
         if "author" in self.initial_data:
             raise serializers.ValidationError(
                 {"author": "Ошибка! Это поле нельзя поменять."}
             )
+        new_ingredients = validated_data.pop("ingredients")
+        instance.ingredients.all().delete()
+        self.add_ingredients_to_recipe(instance, new_ingredients)
         return super().update(instance, validated_data)
+
+    def add_ingredients_to_recipe(self, instance, ingredients):
+        for item in ingredients:
+            ingredient, _ = api_models.Ingredient.objects.get_or_create(
+                ingredient=item["id"], amount=item["amount"]
+            )
+            instance.ingredients.add(ingredient)
 
     def validate_cooking_time(self, value):
         if value <= 0:

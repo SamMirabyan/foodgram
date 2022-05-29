@@ -8,12 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 
-
-# Боевые настройки
 DEBUG = config('DEBUG', cast=bool)
-
-
-# DEBUG = True
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
@@ -66,26 +61,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
-# настройки для разработки
+"""# настройки для разработки
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+"""
 
 # боевые настройки
-#DATABASES = {
-#    'default': {
-#        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
-#        'NAME': config('DB_NAME', default=BASE_DIR / "db.sqlite3"),
-#        'USER': config('POSTGRES_USER', default='user'),
-#        'PASSWORD': config('POSTGRES_PASSWORD', default='password'),
-#        'HOST': config('DB_HOST', default='localhost'),
-#        'PORT': config('DB_PORT', cast=int, default='5432')
-#    }
-#}
+DATABASES = {
+    'default': {
+        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
+        'NAME': config('DB_NAME', default=BASE_DIR / "db.sqlite3"),
+        'USER': config('POSTGRES_USER', default='user'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='password'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', cast=int, default='5432')
+    }
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [

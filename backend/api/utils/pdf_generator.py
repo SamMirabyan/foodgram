@@ -65,7 +65,9 @@ def render_pdf(request, context, template_path):
         response.write(html)
     else:
         pisa_status = pisa.CreatePDF(
-            html, dest=response, link_callback=link_callback
+            html, dest=response,
+            link_callback=link_callback,
+            encoding='utf-8'
         )
         if pisa_status.err:
             return HttpResponse(

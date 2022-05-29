@@ -18,7 +18,7 @@ class FavoritesShoppingCartMixin:
         detail=True,
         permission_classes=(permissions.IsAuthenticated,),
     )
-    def favorites(self, *args, **kwargs):
+    def favorite(self, *args, **kwargs):
         return self.manage_favorites_or_shopping_cart(
             "favorites", *args, **kwargs
         )
@@ -95,5 +95,5 @@ class FavoritesShoppingCartMixin:
             shopping_dict.update({ingredient: str(amount) + " " + unit})
         request = self.request
         data = {"username": user.username, "list": shopping_dict}
-        template = "shopping_list2.html"
+        template = "shopping_list.html"
         return render_pdf(request, data, template)

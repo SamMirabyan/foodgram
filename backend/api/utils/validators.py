@@ -31,3 +31,4 @@ def _validate_password(password, instance=None):
         raise serializers.ValidationError({'password': e})
     if instance is not None:
         instance.set_password(password)
+        instance.save()
