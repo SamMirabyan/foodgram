@@ -1,0 +1,39 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./docker/db/.env
+
+  backend:
+    restart: unless-stopped
+    image: nontechlearndev/foodgram_backend:v1
+    entrypoint: /app/wsgi-entrypoint.sh
+    volumes:
+      - django_static_volume:/app/static/
+      - django_media_volume:/app/media/
+    expose:
+      - 8000
+    depends_on:
+      - db
+
+  nginx:
+    restart: unless-stopped
+    image: nontechlearndev/foodgram_nginx_frontend:v1
+    ports:
+      - 80:80
+    volumes:
+      - ./docker/nginx/:/etc/nginx/conf.d
+      - ./docs/:/usr/share/nginx/html/api/docs/
+      - django_static_volume:/usr/share/nginx/html/api/static/
+      - django_media_volume:/usr/share/nginx/html/api/media/
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  django_static_volume:
+  django_media_volume:

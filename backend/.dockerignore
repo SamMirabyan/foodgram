@@ -1,0 +1,9 @@
+**/.vscode/
+**/.pytest_cache/
+**/.git
+**/*.pyc
+**/*.toml
+**/__pycache__/
+**/venv/
+**/db.sqlite3
+**/.gitkeep
