@@ -1,6 +1,6 @@
 import django_filters
 
-from api.models import IngredientType, Recipe
+from ..models import IngredientType, Recipe
 
 BOOLEAN_CHOICES = ((0, False), (1, True))
 
