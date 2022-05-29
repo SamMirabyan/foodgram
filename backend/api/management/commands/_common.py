@@ -1,9 +1,8 @@
 import csv
 
+from api.models import Recipe
 from django.apps import apps
 from django.conf import settings
-
-from api.models import Recipe
 
 PATH = settings.BASE_DIR / "fixtures"
 MODELS = ["user", "tag", "subscription", "recipe"]
