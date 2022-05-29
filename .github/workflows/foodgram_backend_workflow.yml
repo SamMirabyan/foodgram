@@ -63,7 +63,7 @@ jobs:
           script: |
             sudo systemctl stop nginx
             sudo docker-compose stop
-            sudo docker-compose rm backend
+            sudo docker-compose rm -f backend
             touch .env
             echo SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} >> .env
             echo DEBUG=${{ secrets.DJANGO_DEBUG }} >> .env
