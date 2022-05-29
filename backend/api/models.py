@@ -69,6 +69,10 @@ class Tag(models.Model):
     )
     slug = models.SlugField(unique=True, verbose_name="Короткое название")
 
+    class Meta:
+        verbose_name = "Тэг"
+        verbose_name_plural = "Тэги"
+
     def __str__(self):
         return f"{self.slug}, цвет {self.color}"
 
@@ -117,6 +121,8 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ("-id",)
+        verbose_name = "Рецепт"
+        verbose_name_plural = "Рецепты"
 
     def __str__(self):
         return f"{self.name} от {self.author}"
