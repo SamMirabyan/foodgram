@@ -260,7 +260,7 @@ class CreateIngredientSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {
                     "amount": (
-                        "Ошибка! Количество ингедиентов не может "
+                        "Ошибка! Количество ингредиентов не может "
                         "быть меньше или равно нулю."
                     )
                 }
