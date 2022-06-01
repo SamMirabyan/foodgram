@@ -365,11 +365,12 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        print(validated_data)
         if "author" in self.initial_data:
             raise serializers.ValidationError(
                 {"author": "Ошибка! Это поле нельзя поменять."}
             )
+        # удаляем старое фото, чтобы не засорять хранилище
+        instance.image.storage.delete(instance.image.name)
         new_ingredients = validated_data.pop("ingredients")
         instance.ingredients.all().delete()
         self.add_ingredients_to_recipe(instance, new_ingredients)
