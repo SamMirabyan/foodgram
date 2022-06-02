@@ -49,7 +49,13 @@ class Ingredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Ингредиент",
     )
-    amount = models.SmallIntegerField(verbose_name="Количество")
+    amount = models.SmallIntegerField(
+        erbose_name="Количество",
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(100000),
+        ],
+    )
 
     def __str__(self):
         return (
