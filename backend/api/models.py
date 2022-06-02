@@ -49,7 +49,7 @@ class Ingredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Ингредиент",
     )
-    amount = models.SmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name="Количество",
         validators=[
             MinValueValidator(1),
