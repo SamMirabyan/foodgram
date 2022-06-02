@@ -50,7 +50,7 @@ class Ingredient(models.Model):
         verbose_name="Ингредиент",
     )
     amount = models.SmallIntegerField(
-        erbose_name="Количество",
+        verbose_name="Количество",
         validators=[
             MinValueValidator(1),
             MaxValueValidator(100000),
