@@ -246,7 +246,6 @@ class CreateIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=api_models.IngredientType.objects.all()
     )
-    amount = serializers.IntegerField()
 
     class Meta:
         model = api_models.Ingredient
@@ -254,18 +253,6 @@ class CreateIngredientSerializer(serializers.ModelSerializer):
             "id",
             "amount",
         )
-
-    def validate_amount(self, value):
-        if value <= 0:
-            raise serializers.ValidationError(
-                {
-                    "amount": (
-                        "Ошибка! Количество ингредиентов не может "
-                        "быть меньше или равно нулю."
-                    )
-                }
-            )
-        return value
 
 
 class RecipeReadOnlySerializer(serializers.ModelSerializer):
@@ -382,32 +369,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 ingredient=item["id"], amount=item["amount"]
             )
             instance.ingredients.add(ingredient)
-
-    def validate_cooking_time(self, value):
-        if value <= 0:
-            raise serializers.ValidationError(
-                {
-                    "cooking_time": (
-                        "Ошибка! Время приготовления не может "
-                        "быть меньше или равно нулю"
-                    )
-                }
-            )
-        elif value > 360:
-            raise serializers.ValidationError(
-                {
-                    "cooking_time": (
-                        "Ошибка! Вы пытаетесь сохранить рецепт "
-                        "со сроком приготовления более 6 часов. "
-                        "В данном случае рекомендуется при "
-                        "создании указать время, затраченное "
-                        "на выполнение основных операций. "
-                        "А время на доведение до готовности "
-                        "указать в самом описании рецепта."
-                    )
-                }
-            )
-        return value
 
     def to_representation(self, instance):
         """

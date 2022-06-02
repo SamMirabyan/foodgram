@@ -53,7 +53,7 @@ class Ingredient(models.Model):
         verbose_name="Количество",
         validators=[
             MinValueValidator(1),
-            MaxValueValidator(100000),
+            MaxValueValidator(10000),
         ],
     )
 
