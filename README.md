@@ -1,11 +1,6 @@
 
-__IP сервера с рабочим приложением:__
-***51.250.21.73***
-
 ![yamdb_final workflow](https://github.com/sammirabyan/foodgram-project-react/actions/workflows/foodgram_backend_workflow.yml/badge.svg)
 
-admin username: admin;
-admin password: Test_admin;
 
 <div style="text-align: center">
 
@@ -54,7 +49,7 @@ admin password: Test_admin;
 - backend :electric_plug:: Django Rest Framework :gun: + Gunicorn :carousel_horse:;
 - database :1234:: postgres (дефолтный image для docker).
 
-### Интересные задачи, решенные в процессе работы над сервисом:
+### Интересные задачи, решенные в процессе работы над сервисом
 - создание и редактирование связанных моделей через глубоко вложенные сериализаторы:
     - например сериализатор создания рецепта использует сериализатор ингредиента, который использует сериализатор типа ингредиента...
 - использование кастомных management комманд для заливки тестовых данных в базу;
@@ -64,7 +59,11 @@ admin password: Test_admin;
 - преобразование html шаблона в пдф документ и его скачивание;
 - использование системы аутентификации с помощью токенов и использование кастомных пермишенов.
 
-### Над проектом работали:
+### Над еще нужно поработать
+- добавить тесты;
+- включить тестирование в этапы workflow.
+
+### Над проектом работали
 - frontend и спеки в redoc предоставлены [Yandex Prakticum Team](https://github.com/yandex-praktikum);
 - backend и docker:whale:'ная часть написаны [Sam Mirabyan (aka nontech-learndev)](https://github.com/sammirabyan).
 
