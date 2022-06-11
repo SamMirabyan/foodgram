@@ -41,6 +41,7 @@
     docker-compose exec python manage.py loadtestdata
     ```
 6. **Важно!** В случае удаления тестовых данных с помощью, например ```python manage.py flush``` будут полностью удалены предустановленные данные типов ингредиентов. Во избежание неожиданного поведения БД рекомендуется полностью удалить volume базы данных и вновь собрать контнейры.
+7. **Важно**: обязательно измените workflow-инструкции файла `.github/workflows/foodgram_backend_workflow.yml` под нужды своего проекта. 
 
 ### Архитектура сервиса
 Сервис собран в 3-х docker контейнерах, управляемых с помощью docker-compose:
@@ -59,12 +60,15 @@
 - преобразование html шаблона в пдф документ и его скачивание;
 - использование системы аутентификации с помощью токенов и использование кастомных пермишенов.
 
-### Над еще нужно поработать
+### Над чем еще нужно поработать
 - добавить тесты;
 - включить тестирование в этапы workflow.
 
 ### Над проектом работали
 - frontend и спеки в redoc предоставлены [Yandex Prakticum Team](https://github.com/yandex-praktikum);
-- backend и docker:whale:'ная часть написаны [Sam Mirabyan (aka nontech-learndev)](https://github.com/sammirabyan).
+- backend и docker:whale:'ная часть написаны [Sam Mirabyan](https://sammirabyan.github.io).
+
+### Обложка
+[pexels.com](https://www.pexels.com/ru-ru/photo/3338497/)
 
 </div>
