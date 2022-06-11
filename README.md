@@ -1,5 +1,5 @@
 
-![yamdb_final workflow](https://github.com/sammirabyan/foodgram-project-react/actions/workflows/foodgram_backend_workflow.yml/badge.svg)
+![foodgram workflow](https://github.com/sammirabyan/foodgram-project-react/actions/workflows/foodgram_backend_workflow.yml/badge.svg)
 
 
 <div style="text-align: center">
